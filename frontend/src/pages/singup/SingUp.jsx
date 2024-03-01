@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import { Link } from "react-router-dom";
 import GenderCheckBox from "./GenderCheckBox";
 import { useState } from "react";
+import useSignup from "../../hooks/useSingup";
 
 const SingUp = () => {
 
@@ -12,10 +14,20 @@ const SingUp = () => {
     gender:"",
   })
 
-  const handleSubmit = (e)=>{
-     e.preventDefault();
-     console.log(inputs)
+  const {loading,singup} = useSignup()
+
+  // for gender 
+  const handleCheckBok = (gender) =>{
+    setInputs({...inputs,gender})
+
   }
+
+
+ 
+  const handleSubmit = async (e)=>{
+     e.preventDefault();
+     await singup(inputs)
+   }
 
 
 
@@ -69,7 +81,7 @@ const SingUp = () => {
           </div>
 
           {/* gender checkbox  */}
-          <GenderCheckBox/>
+          <GenderCheckBox onCheckboxChange={handleCheckBok} selectedGender={inputs.gender} />
 
 
           <Link to='/login'
@@ -79,7 +91,12 @@ const SingUp = () => {
             Already have an Account ?
           </Link>
 
-          <button className="btn btn-block btn-sm mt-2">Sing Up</button>
+          <button className="btn btn-block btn-sm mt-2" disabled={loading}>
+            {
+              loading ? 
+              <span className="loading loading-spinner"></span> : "Sing Up"
+            }
+          </button>
 
 
 

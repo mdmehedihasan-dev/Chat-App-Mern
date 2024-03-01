@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReciverSocketId, io } from "../socket/socket.js";
 
 // send Message 
 
@@ -35,7 +36,18 @@ export const sendMessage = async(req,res) => {
         // this will run in parallel 
         await Promise.all([conversation.save(), newMessage.save()]);
 
-        
+        //socket funcation will 
+        const receiverSocketId = getReciverSocketId(receiverId)
+        if(receiverSocketId){
+            // io.to(<socketid>).emit() used to send event to specified client 
+            io.to(receiverSocketId).emit("newMessage",newMessage)
+        }
+
+
+
+
+
+
         res.status(201).json(newMessage)
         
     } catch (error) {
@@ -52,9 +64,14 @@ export const getMessages = async (req,res)=>{
         const senderId = req.user._id;
 
         const conversation = await Conversation.findOne({
-            participants:{$all:[senderId,userToChatId]}
-        }).populate("messages");
-        res.status(200).json(conversation.messages)
+            participants:{$all:[senderId,userToChatId]},
+        }).populate("messages");  
+        if(!conversation) return res.status(200).json([]);
+
+        const messages = conversation.messages;
+
+
+        res.status(200).json(messages)
     } catch (error) {
         console.log("Error in getMessages controller:",error.message)
         res.status(500).json({error:"Internal server error"});
